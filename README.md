@@ -1,2 +1,2 @@
-# OSA_Phenotyping_LLMs
+# OSA Phenotyping LLMs
 Developing analytic tools for phenotyping Obstructive Sleep Apnea along clinical text.
