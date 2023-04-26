@@ -95,7 +95,7 @@ The following are the scripts used in the main workflow of the analysis:
 ├── README.md
 ├── data
 └── src
-    ├── 0_subset_MIMICIV_OSA_Phenotype.py
+    ├── 0_subset_MIMICIV_phenotype.py
     ├── 1_embedd_MIMICIV_records.py
     ├── 2_umap2D_MIMICIV_latent.py
     ├── 3_clustr_MIMICIV_latent.py
