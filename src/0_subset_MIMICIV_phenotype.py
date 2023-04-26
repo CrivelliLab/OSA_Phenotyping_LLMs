@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
   #- Uniquely Identify Text With Hash; Sort to Ensure Interprocess Consistency
   assert "text" in df.columns
-  df["sha224"] = df["text"].apply(lambda x: sha224(x.encode("utf-8")).hexdigest())
+  df["sha224"] = (df.["PID"].astype(str)+df["text"]).apply(lambda x: sha224(x.encode("utf-8")).hexdigest())
   df = df.sort_values("sha224").reset_index(drop=True)
 
   #- Save to outpath

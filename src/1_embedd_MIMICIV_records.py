@@ -44,7 +44,7 @@ if __name__ == "__main__":
   args = parse_args()
   if not os.path.exists("logs/"): mkpath("logs/")
   logging.basicConfig(format="NLP@LBNL|%(asctime)s|%(name)s|%(levelname)s|%(message)s",
-                        filename="logs/0_subset_MIMICIV_records.log",
+                        filename="logs/1_embedd_MIMICIV_records.log",
                         level = logging.DEBUG)
   logger = logging.getLogger("__main__")
 
@@ -53,8 +53,8 @@ if __name__ == "__main__":
   rank = comm.Get_rank()
   worldsize = comm.Get_size()
 
-  #- Load Reports Per Worker
-  df = pd.read_parquet(args.reports)
+  #- Load Records Per Worker
+  df = pd.read_parquet(args.records)
   df = np.array_split(df, worldsize)[rank]
   assert "text" in df.columns
 
@@ -70,8 +70,8 @@ if __name__ == "__main__":
   latent = torch.cat(latent)
 
   #- Store Embedding Tensors
-  report_nm = ".".join(args.reports.split("/")[-1].split(".")[:-1])
-  outpath = "{}{}/".format(args.outpath, report_nm)
+  record_nm = ".".join(args.records.split("/")[-1].split(".")[:-1])
+  outpath = "{}{}/".format(args.outpath, record_nm)
   if not os.path.exists(outpath): mkpath(outpath)
   outpath = "{}part.{}.{}.pt".format(outpath, rank, world_size)
   torch.save(latent, outpath)
