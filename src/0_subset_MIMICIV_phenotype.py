@@ -1,5 +1,7 @@
 #- Imports
 import os, argparse
+import pandas as pd
+from hashlib import sha224
 
 #-
 DEFAULT_MIMICIV_PATH = "/project/projectdirs/m1532/Projects_MVP/_datasets/MIMIC_IV/"
@@ -31,7 +33,7 @@ if __name__ == "__main__":
   if not os.path.exists(args.out): mkpath(args.out)
   if not os.path.exists("logs/"): mkpath("logs/")
   logging.basicConfig(format="NLP@LBNL|%(asctime)s|%(name)s|%(levelname)s|%(message)s",
-                        filename="logs/0_subset_MIMICIV_records.log",
+                        filename="logs/0_subset_MIMICIV_phenotype.log",
                         level = logging.DEBUG)
   logger = logging.getLogger("__main__")
 
@@ -46,7 +48,12 @@ if __name__ == "__main__":
   # df = ...
   logger.info("MIMIC-IV tables subsetted.")
 
-  #- Merge data and save to outpath
+  #- Uniquely Identify Text With Hash; Sort to Ensure Interprocess Consistency
+  assert "text" in df.columns
+  df["sha224"] = df["text"].apply(lambda x: sha224(x.encode("utf-8")).hexdigest())
+  df = df.sort_values("sha224").reset_index(drop=True)
+
+  #- Save to outpath
   outpath = "{}{}.parquet".format(args.outpath, ".".join(args.pheno.split("/")[-1].split(".")[:-1]))
   df.to_parquet(outpath, index=False)
   logger.info("Records stored under: {}".format(outpath))
