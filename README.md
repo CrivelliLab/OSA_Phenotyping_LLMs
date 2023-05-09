@@ -19,10 +19,10 @@ On NERSC, a local copy was pulled and stored under `/project/projectdirs/m1532/P
     │   │   └── [4.0K]  2.2
     │   │       ├── [ 13K]  CHANGELOG.txt
     │   │       ├── [4.0K]  hosp
-    │   │       │   ├── [ 70M]  admissions.csv
+    │   │       │   ├── [ 70M]  admissions.csv #- Patient Hospital Admissions (HADM_ID, SUBJECT_ID)
     │   │       │   ├── [3.2M]  d_hcpcs.csv
-    │   │       │   ├── [129M]  diagnoses_icd.csv
-    │   │       │   ├── [8.4M]  d_icd_diagnoses.csv
+    │   │       │   ├── [129M]  diagnoses_icd.csv #- 1 row = 1 dx code 
+    │   │       │   ├── [8.4M]  d_icd_diagnoses.csv #- Descriptions and titles
     │   │       │   ├── [7.0M]  d_icd_procedures.csv
     │   │       │   ├── [ 62K]  d_labitems.csv
     │   │       │   ├── [ 40M]  drgcodes.csv
@@ -33,7 +33,7 @@ On NERSC, a local copy was pulled and stored under `/project/projectdirs/m1532/P
     │   │       │   ├── [ 13G]  labevents.csv
     │   │       │   ├── [707M]  microbiologyevents.csv
     │   │       │   ├── [254M]  omr.csv
-    │   │       │   ├── [9.4M]  patients.csv
+    │   │       │   ├── [9.4M]  patients.csv #- Patient Demographics (SUBJECT_ID)
     │   │       │   ├── [2.8G]  pharmacy.csv
     │   │       │   ├── [3.6G]  poe.csv
     │   │       │   ├── [214M]  poe_detail.csv
@@ -61,7 +61,7 @@ On NERSC, a local copy was pulled and stored under `/project/projectdirs/m1532/P
     │           ├── [ 574]  index.html
     │           ├── [2.5K]  LICENSE.txt
     │           ├── [4.0K]  note
-    │           │   ├── [1.1G]  discharge.csv.gz
+    │           │   ├── [1.1G]  discharge.csv.gz # (NOTE_ID, HADM_ID), 331,794 reports for 145,915 patients
     │           │   ├── [1.3M]  discharge_detail.csv.gz
     │           │   ├── [ 737]  index.html
     │           │   ├── [746M]  radiology.csv.gz
