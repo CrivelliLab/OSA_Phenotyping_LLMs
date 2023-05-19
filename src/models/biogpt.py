@@ -9,13 +9,14 @@ MODELPATH = "/global/cfs/cdirs/m1532/Projects_MVP/_models/LLMs/Pre-trained-BioGP
 def load_BioGPT_Base(model_path=MODELPATH, device="cpu"):
   assert os.path.exists(model_path)
   m = TransformerLanguageModel.from_pretrained(
-          model_path, 
-          "checkpoint.pt", 
-          "data",
-          tokenizer='moses', 
-          bpe='fastbpe', 
-          bpe_codes="data/bpecodes",
-          min_len=100,
+        model_path, 
+        "checkpoint.pt", 
+        "data",
+        tokenizer='moses', 
+        bpe='fastbpe', 
+        bpe_codes="data/bpecodes",
+        min_len=100,
+        max_len_b=1024)
   m.to(device)
   return m
   
