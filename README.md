@@ -130,36 +130,92 @@ The following are the papers for these models.
 
 ### Project API
 
-A simple wrapper for getting the LLMs hidden layer activations can be found under [`models/src/`](models/src/).
-Most of these models load cached weights found under `/project/projectdirs/m1532/Projects_MVP/_models/LLMs/huggingface_cache/`. To import the tokenizer and model from the root directory,
+A simple wrapper for getting clinical LLMs running on NERSC's Perlmutter and computing hidden layer activations can be found under [`models/src/`](models/src/). Most models load cached weights found under `/project/projectdirs/m1532/Projects_MVP/_models/LLMs/huggingface_cache/`. The following is a python script named `example.py` shows how the wrapper
+functions can be used to run torch models in parallel. The python scripts loads a LLM, tokenizes text and creates a embedding for the text on each worker GPU allocated by a SLURM job. The SLURM job script follows and allocates
+a single GPU node to run the example over 4 NVidia A100s.
 
 ```python
+# example.py
 
-#- Import the model loading function.
+#- Imports
+import torch
 from src.models.src.biogpt import read_BioGPT_base
+from src.models.src.utils.parallel import SLURMDistributedTorch
+from src.models.src.utils.embed import tokenize_texts, embed_tokens
 
-#- Load model
-tokenizer, model = read_BioGPT_base()
+#- Torch Wrapper For Collective-Communication Between GPUs on SLURM
+# Attributes
+# * context.rank - GPU worker id.
+# * context.world_size - number of available GPU workers.
+# * context.device - Torch.device for GPU worker.
+# * context.barrier() - Function calls torch.distributed.barrier(); used to block parallel processes.
+with SLURMDistributedTorch(seed=666142) as context:
 
+  #- Load Tokenizer and Model. Move Model to Worker GPU
+  tokenizer, model = read_BioGPT_base()
+  model = model.to(context.device)
+  context.barrier() # Wait for all workers loading model
+
+  #- Tokenize example texts.
+  texts = ["The patient had a heart attack."]
+  tokens = tokenize_texts(texts, tokenizer)
+
+  #- Move Tokens to Worker GPU And Run Model Inference For Embedding
+  tokens = torch.Tensor(tokens).long().to(device)
+  embeds = embed_tokens_tensor(tokens, model)
+
+  #- Delete Objects an Clear Cache to Release Worker GPU Memory.
+  del(tokens); del(embeds); del(model)
+  torch.cuda.empty_cache()
+  
 ```
 
-These models have been tested on a single NERSC Perlmutter GPU node using [`src/models/submit.sh`]("src/models/submit.sh").
-The follow table contains the parameter count, input throughput, and inference runtime:
+```bash
+#!/bin/bash
+#SBATCH --account=mXXXX
+#SBATCH --job-name=mXXXX.test
+#SBATCH --output=logs/mXXXX.test.out
+#SBATCH --error=logs/mXXXX.test.err
+#SBATCH -C gpu
+#SBATCH -q debug
+#SBATCH -t 0:10:00
+#SBATCH -n 1
+#SBATCH --gpus 4
 
-| Model_Name  | Package | Read_Fun | Num_Params | Max_Batch | Max_Seq_Len | Runtime (n=10)
+### NCCL Distributed Torch Environmental Variables
+
+# change 5-digit MASTER_PORT as you wish, slurm will raise Error if duplicated with others
+export MASTER_PORT=12341
+
+# change WORLD_SIZE as gpus/node * num_nodes
+export WORLD_SIZE=4
+
+# set master address for NCCL as first hostname on the SLURM JOB
+master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
+export MASTER_ADDR=$master_addr
+
+#--
+srun -n 4 python src/biobart.py
+  
+```
+
+These models have been tested on a single NERSC Perlmutter GPU node using [`src/models/submit.sh`](src/models/submit.sh).
+Each GPU node contains 4 NVidia A100s (40 GB of onboard mem). The follow table contains the parameter count, input throughput, and inference runtime:
+
+| Model_Name  | Package | Read_Fun | Num_Params | Max_Batch | Max_Seq_Len | Runtime (n=100)
 | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | -------------
-| BioBart_base | src.models.src.biobart | read_BioBart_base | 166,404,864 | 12 | 1024 | 0.5617
-| BioBart_large | src.models.src.biobart | read_BioBart_large | 442,270,720 | 5 | 1024 | 0.3441
-| BioBert_base | src.models.src.biobert | read_BioBert_base | 108,340,804 | 36 | 512 | 0.1653
-| BioBert_large | src.models.src.biobert | read_BioBert_large | 364,360,308 | 14 | 512 | 0.1043
-| BioGPT_base | src.models.src.biogpt | read_BioGPT_base | 346,763,264 | 6 | 1024 | 0.3443
-| BioGPT_large | src.models.src.biogpt| read_BioGPT_large | 1,571,188,800 | 1 | 2048 | 0.5718
-| BioMegatron_base | src.models.src.biomegatron | read_BioMegatron_base | 333,640,704 | 10 | 512 | 0.2691
-| Gatortron_base | src.models.src.gatortron | read_Gatortron_base | 355,267,584 | 33 | 512 | 0.2877
-| Gatortron_s | src.models.src.gatortron | read_Gatortron_s | 355,267,584 | 33 | 512 | 0.3638 
-| Gatortron_medium | src.models.src.gatortron | read_Gatortron_medium | 3,912,798,720 | 5 | 512 | 0.1768
-| RadBERT_2m | src.models.src.radbert | read_RadBert_2m | 109,514,298 | 36 | 512 | 0.2091
-| RadBERT_4m | src.models.src.radbert | read_RadBert_4m | 124,697,433 | 36 | 514 | 0.2219
+| BioBart_base | src.models.src.biobart | read_BioBart_base | 166,404,864 | 12 | 1024 | 0.6037
+| BioBart_large | src.models.src.biobart | read_BioBart_large | 442,270,720 | 5 | 1024 | 0.4925
+| BioBert_base | src.models.src.biobert | read_BioBert_base | 108,340,804 | 36 | 512 | 0.2109
+| BioBert_large | src.models.src.biobert | read_BioBert_large | 364,360,308 | 14 | 512 | 0.2988
+| BioGPT_base | src.models.src.biogpt | read_BioGPT_base | 346,763,264 | 6 | 1024 | 0.3272
+| BioGPT_large | src.models.src.biogpt| read_BioGPT_large | 1,571,188,800 | 1 | 2048 | 0.5816
+| BioMegatron_base | src.models.src.biomegatron | read_BioMegatron_base | 333,640,704 | 10 | 512 | 0.2831
+| Gatortron_base | src.models.src.gatortron | read_Gatortron_base | 355,267,584 | 33 | 512 | 0.2740
+| Gatortron_s | src.models.src.gatortron | read_Gatortron_s | 355,267,584 | 33 | 512 | 0.2707 
+| Gatortron_medium | src.models.src.gatortron | read_Gatortron_medium | 3,912,798,720 | 5 | 512 | 0.1275
+| RadBERT_2m | src.models.src.radbert | read_RadBert_2m | 109,514,298 | 36 | 512 | 0.2127
+| RadBERT_4m | src.models.src.radbert | read_RadBert_4m | 124,697,433 | 36 | 514 | 0.2539
 
 ## Analysis Workflow
 

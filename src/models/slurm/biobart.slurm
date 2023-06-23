@@ -5,7 +5,7 @@
 #SBATCH --error=logs/m1532.biobart.test.err
 #SBATCH -C gpu
 #SBATCH -q debug
-#SBATCH -t 0:15:00
+#SBATCH -t 0:20:00
 #SBATCH -n 1
 #SBATCH --gpus 4
 

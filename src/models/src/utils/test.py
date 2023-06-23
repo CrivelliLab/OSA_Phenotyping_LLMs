@@ -33,7 +33,7 @@ def gpu_batch_limit(max_batch, max_seq, model, device):
   return limit
 
 #--
-def gpu_batch_runtime(max_batch, max_seq, model, device, samples=10):
+def gpu_batch_runtime(max_batch, max_seq, model, device, samples=100):
   model = model.to(device)
   ts = []
   for i in range(samples):
@@ -44,6 +44,7 @@ def gpu_batch_runtime(max_batch, max_seq, model, device, samples=10):
     del(tokens); del(embeds)
     torch.cuda.empty_cache()
   model = model.cpu()
+  torch.cuda.empty_cache()
   return sum(ts)/samples
 
 #--
