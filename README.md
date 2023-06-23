@@ -130,12 +130,13 @@ The following are the papers for these models.
 
 ### Project API
 
-A simple wrapper for getting clinical LLMs running on NERSC's Perlmutter and computing hidden layer activations can be 
-found under [`src/models/`](src/models/). Most models load cached weights found under `/project/projectdirs/m1532/Projects_MVP/_models/LLMs/huggingface_cache/`. 
-The following scripts `example.py` and `example.slurm` show how the wrapper functions can be used to run pytorch model 
-inference in parallel.
+> Most models load cached weights found under `/project/projectdirs/m1532/Projects_MVP/_models/LLMs/huggingface_cache/`. 
 
-The python script loads a BioGPT LLM, tokenizes a list of example text and creates a embedding for the texts. This runs on each worker GPU allocated by the SLURM job running the script. The SLURM job script follows and describes an allocation for a single GPU node which runs the example script over 4 NVidia A100s.
+A simple wrapper for getting clinical LLMs running on NERSC's Perlmutter and computing hidden layer activations can be 
+found under [`src/models/`](src/models/). `example.py` and `example.slurm` show how the wrapper 
+functions can be used to run pytorch model inference in parallel.
+
+The python script loads a BioGPT LLM, tokenizes a list of example text and creates a embedding for the texts. This runs on each worker GPU allocated by the SLURM job. The SLURM job script describes an allocation for a single GPU node which runs the example program over 4 NVidia A100s.
 
 ```python
 # example.py
