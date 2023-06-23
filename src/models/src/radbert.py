@@ -1,7 +1,5 @@
 #- 
 from transformers import AutoTokenizer, AutoModelForMaskedLM
-from utils.parallel import SLURMDistributedTorch
-from utils.test import benchmark_llm
 
 #-
 SEED = 666142
@@ -26,6 +24,10 @@ def read_RadBERT_4m():
 
 #--
 if __name__ == "__main__" :
+
+  #- 
+  from utils.parallel import SLURMDistributedTorch
+  from utils.test import benchmark_llm
 
   #-
   with SLURMDistributedTorch(seed=SEED) as context:

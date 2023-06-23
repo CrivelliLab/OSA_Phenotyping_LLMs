@@ -1,11 +1,11 @@
 #-
-from biobart import read_BioBART_base, read_BioBART_large, MAXLEN_BioBart_base, MAXLEN_BioBart_large
-from biobert import read_BioBERT_base, read_BioBERT_large, MAXLEN_BioBert_base, MAXLEN_BioBert_large
-from biogpt import read_BioGPT_base, read_BioGPT_large, MAXLEN_BioGPT_base, MAXLEN_BioGPT_large
-from biomegatron import read_BioMegatron_base, MAXLEN_BioMegatron_base
-from clinicalt5 import read_ClinicalT5_base, read_ClinicalT5_large, MAXLEN_ClinicalT5_base, MAXLEN_ClinicalT5_large
-from gatortron import read_Gatortron_base, read_Gatortron_s, read_Gatortron_medium, MAXLEN_Gatortron_base, MAXLEN_Gatortron_s, MAXLEN_Gatortron_medium
-from radbert import read_RadBERT_2m, read_RadBERT_4m, MAXLEN_RadBERT_2m, MAXLEN_RadBERT_4m
+from models.src.biobart import read_BioBART_base, read_BioBART_large, MAXLEN_BioBart_base, MAXLEN_BioBart_large
+from models.src.biobert import read_BioBERT_base, read_BioBERT_large, MAXLEN_BioBert_base, MAXLEN_BioBert_large
+from models.src.biogpt import read_BioGPT_base, read_BioGPT_large, MAXLEN_BioGPT_base, MAXLEN_BioGPT_large
+from models.src.biomegatron import read_BioMegatron_base, MAXLEN_BioMegatron_base
+from models.src.clinicalt5 import read_ClinicalT5_base, read_ClinicalT5_large, MAXLEN_ClinicalT5_base, MAXLEN_ClinicalT5_large
+from models.src.gatortron import read_Gatortron_base, read_Gatortron_s, read_Gatortron_medium, MAXLEN_Gatortron_base, MAXLEN_Gatortron_s, MAXLEN_Gatortron_medium
+from models.src.radbert import read_RadBERT_2m, read_RadBERT_4m, MAXLEN_RadBERT_2m, MAXLEN_RadBERT_4m
 
 #-
 def read_llm(nme):

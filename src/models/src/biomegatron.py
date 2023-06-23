@@ -1,7 +1,5 @@
 #-
 from transformers import BertTokenizer, AutoModel
-from utils.parallel import SLURMDistributedTorch
-from utils.test import benchmark_llm
 
 #-
 SEED = 666142
@@ -20,6 +18,10 @@ def read_BioMegatron_base():
 #--
 if __name__ == "__main__" :
 
+  #-
+  from utils.parallel import SLURMDistributedTorch
+  from utils.test import benchmark_llm
+  
   #-
   with SLURMDistributedTorch(seed=SEED) as context:
 
