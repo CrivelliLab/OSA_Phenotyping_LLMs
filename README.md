@@ -75,7 +75,7 @@ On NERSC, a local copy was pulled and stored under `/project/projectdirs/m1532/P
 ## Language Models
 
 For this analysis, we explore the representation quality of several contempory language models.
-10 models have been stored locally on NERSC under `/project/projectdirs/m1532/Projects_MVP/_models/LLMs`.
+7 models have been stored locally on NERSC under `/project/projectdirs/m1532/Projects_MVP/_models/LLMs`.
 The file structure for the LLMs is as follows:
 
 ```
@@ -130,9 +130,12 @@ The following are the papers for these models.
 
 ### Project API
 
-A simple wrapper for getting clinical LLMs running on NERSC's Perlmutter and computing hidden layer activations can be found under [`models/src/`](models/src/). Most models load cached weights found under `/project/projectdirs/m1532/Projects_MVP/_models/LLMs/huggingface_cache/`. The following is a python script named `example.py` shows how the wrapper
-functions can be used to run torch models in parallel. The python scripts loads a LLM, tokenizes text and creates a embedding for the text on each worker GPU allocated by a SLURM job. The SLURM job script follows and allocates
-a single GPU node to run the example over 4 NVidia A100s.
+A simple wrapper for getting clinical LLMs running on NERSC's Perlmutter and computing hidden layer activations can be 
+found under [`src/models/`](src/models/). Most models load cached weights found under `/project/projectdirs/m1532/Projects_MVP/_models/LLMs/huggingface_cache/`. 
+The following scripts `example.py` and `example.slurm` show how the wrapper functions can be used to run pytorch model 
+inference in parallel.
+
+The python script loads a BioGPT LLM, tokenizes a list of example text and creates a embedding for the texts. This runs on each worker GPU allocated by the SLURM job running the script. The SLURM job script follows and describes an allocation for a single GPU node which runs the example script over 4 NVidia A100s.
 
 ```python
 # example.py
@@ -171,6 +174,8 @@ with SLURMDistributedTorch(seed=666142) as context:
 ```
 
 ```bash
+# example_job.slurm
+
 #!/bin/bash
 #SBATCH --account=mXXXX
 #SBATCH --job-name=mXXXX.test
