@@ -1,11 +1,14 @@
 #- Imports
+import math
 import os, argparse
 import pandas as pd
 from hashlib import sha224
+import logging
+import argparse
 
 #-
 DEFAULT_MIMICIV_PATH = "/project/projectdirs/m1532/Projects_MVP/_datasets/MIMIC_IV/"
-DEFAULT_OUTPATH = "output/records/"
+DEFAULT_OUTPATH = "/output/phenotype/"
 
 #--
 def mkpath(path):
@@ -20,15 +23,36 @@ def mkpath(path):
 #--
 def parse_args():
   parser = argparse.ArgumentParser()
-  parser.add_argument("--pheno", type=str, description="Path to Dx classes.")
-  parser.add_argument("--data", type=str, default=DEFAULT_MIMICIV_PATH, description="Path to MIMIC-IV.")
-  parser.add_argument("--out", type=str, default=DEFAULT_OUTPATH, description="Path to output directory.")
+  parser.add_argument("--pheno", type=str)
+  parser.add_argument("--data", type=str, default=DEFAULT_MIMICIV_PATH)
+  parser.add_argument("--out", type=str, default=DEFAULT_OUTPATH)
   return parser.parse_args()
+
+#-
+def subset_patients(df, path_to_MIMIC):
+    
+    #-
+    patients = pd.read_csv("{}mimiciv/2.2/hosp/patients.csv".format(path_to_MIMIC))
+    longtitle_diagnoses = pd.read_csv("{}mimiciv/2.2/hosp/d_icd_diagnoses.csv".format(path_to_MIMIC))
+    matching_diagnoses = pd.read_csv("{}mimiciv/2.2/hosp/diagnoses_icd.csv".format(path_to_MIMIC))
+
+    #-
+    df["ICD9"] = df["ICD9"].str.replace('"', '').str.replace('.', '')
+    df["ICD10"] = df["ICD10"].str.replace('"', '').str.replace('.', '')
+    icd9_values = df["ICD9"].dropna().tolist()
+    icd10_values = df["ICD10"].dropna().tolist()
+    combined_values = icd9_values + icd10_values
+    comorbidity_df = matching_diagnoses[matching_diagnoses["icd_code"].isin(combined_values)]
+    comorbidity_string = longtitle_diagnoses[longtitle_diagnoses["icd_code"].isin(combined_values)]
+    comorbidity_codeandtitle = comorbidity_df.merge(comorbidity_string, on = "icd_code", how = "inner")
+    comorbidity_pheno = comorbidity_codeandtitle[["subject_id","hadm_id","seq_num", "icd_code","icd_version_x","long_title"]]
+    comorbidity_pheno.rename(columns={'icd_version_x': 'icd_version'})
+    return comorbidity_pheno
 
 #--
 if __name__ == "__main__":
 
-  #- Parse cmd-line arguments and create logger
+  #-
   args = parse_args()
   if not os.path.exists(args.out): mkpath(args.out)
   if not os.path.exists("logs/"): mkpath("logs/")
@@ -36,31 +60,23 @@ if __name__ == "__main__":
                         filename="logs/0_subset_MIMICIV_phenotype.log",
                         level = logging.DEBUG)
   logger = logging.getLogger("__main__")
+  
+  #-
+  dxs = pd.read_csv(args.pheno)
+  phenotype = subset_patients(dxs, args.data)
+  phenotype["phenotype"] = args.pheno.split("/")[-1].split(".")[0]
 
-  #- Load Phenotype Dxs
-  phenotypes = pd.read_csv(args.pheno)
-  assert "ICD9" in phenotypes.columns
-  assert "ICD10" in phenotypes.columns
-  assert "CLASS" in phenotypes.columns
-  logger.info("Phenotype dx loaded.")
+  #-
+  nb_patients = len(phenotype.subject_id.unique())
+  nb_longtitle = len(phenotype.long_title.unique())
+  nb_icdcode = len(phenotype.icd_code.unique())
+  nb_uniquesubjectvisitcodeversiontitle = len(phenotype.hadm_id.unique())
+  logger.info("Number of unique patients: {}".format(nb_patients))
+  logger.info("Number of unique long titles: {}".format(nb_longtitle))
+  logger.info("Number of unique icd codes: {}".format(nb_icdcode))
+  logger.info("Number of unique hadm: {}".format(nb_uniquesubjectvisitcodeversiontitle))
 
-  #- Load relavant MIMIC-IV tables
-  # df = ...
-  logger.info("MIMIC-IV tables subsetted.")
-
-  #- Uniquely Identify Text With Hash; Sort to Ensure Interprocess Consistency
-  assert "text" in df.columns
-  df["sha224"] = (df.["PID"].astype(str)+df["text"]).apply(lambda x: sha224(x.encode("utf-8")).hexdigest())
-  df = df.sort_values("sha224").reset_index(drop=True)
-
-  #- Save to outpath
-  outpath = "{}{}.parquet".format(args.outpath, ".".join(args.pheno.split("/")[-1].split(".")[:-1]))
-  df.to_parquet(outpath, index=False)
+  #-
+  outpath = "{}/{}.csv".format(args.out, ".".join(args.pheno.split("/")[-1].split(".")[:-1])) 
+  phenotype.to_csv(outpath, index=False)
   logger.info("Records stored under: {}".format(outpath))
-
-  #- Report Stats Like Demographics, data volume, Dx rates, etc
-  # logger.info("nb_unique_patients,{}".format(len(df.PID.unique())))
-
-
-
-
