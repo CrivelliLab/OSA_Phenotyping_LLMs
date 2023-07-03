@@ -128,9 +128,10 @@ if __name__ == "__main__":
       for d in tqdm(dfs):
         tokens = d["toks"].apply(lambda x: [int(xx) for xx in x[1:-1].split(", ")]).tolist()
         tokens = torch.Tensor(tokens).long().to(context.device)
-        lens = torch.Tensor(d.nb_toks.tolist()).unsqueeze(1).to(context.device)
-        embeds = embed_tokens_tensor(tokens, model, layer_id=(-1-args.layer)) / lens
+        lens = d.nb_toks.tolist() #.unsqueeze(1).to(context.device)
+        embeds = embed_tokens_tensor(tokens, model, layer_id=(-1-args.layer), agg=None)
         embeds = embeds.cpu()
+        embeds = torch.cat([embeds[i:(i+1), 0:lens[i]].mean(1) for i in range(len(d))])
         latent.append(embeds.detach().clone())
         del(tokens); del(embeds)
         torch.cuda.empty_cache()

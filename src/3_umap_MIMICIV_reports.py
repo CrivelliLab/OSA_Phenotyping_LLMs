@@ -2,8 +2,7 @@
 import os, argparse, torch, random, logging
 import numpy as np
 import pandas as pd
-import torch.nn.functional as F
-from sklearn.cluster import MiniBatchKMeans
+from umap import UMAP
 
 #-
 def set_seed(seed):
@@ -23,14 +22,13 @@ def mkpath(path):
   return path
 
 #--
-def read_LLM_embeddings(path):
+def read_LLM_embeddings(path, n_clusters):
   shas = []
-  embeds = []
   for f in os.listdir("{}embeds/".format(path)):
     data = torch.load("{}embeds/{}".format(path, f))
     shas += data["sha224"]
-    embeds.append(data["latent"])
-  embeds = torch.cat(embeds)
+  embeds = torch.load("{}kmeans/nclusters.{}.pt".format(path, n_clusters))
+  embeds = embeds / embeds.max()
   df = pd.DataFrame({"sha224": shas})
   return df, embeds
 
@@ -39,6 +37,8 @@ def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument("--embeds", type=str)
   parser.add_argument("--nclusters", type=int)
+  parser.add_argument("--nneighbors", type=int)
+  parser.add_argument("--mindist", type=float)
   return parser.parse_args()
 
 #--
@@ -48,32 +48,33 @@ if __name__ == "__main__":
   args = parse_args()
   if not os.path.exists("logs/"): mkpath("logs/")
   logging.basicConfig(format="NLP@LBNL|%(asctime)s|%(name)s|%(levelname)s|%(message)s",
-                      filename="logs/3_clustr_MIMICIV_reports.log",
+                      filename="logs/2_umap2D_MIMICIV_latent.log",
                       level = logging.DEBUG)
   logger = logging.getLogger("__main__")
   set_seed(666142)
 
   #-
   n_clusters = args.nclusters
+  n_neighbors = args.nneighbors
+  min_dist = args.mindist
 
   #- Load Embeddings
   EMBEDPATH = args.embeds
-  df, latent = read_LLM_embeddings(EMBEDPATH)
-  latent = F.normalize(latent, dim=0)
-  df = df.reset_index(drop=True).reset_index().rename(columns={"index": "idx"})
-
-  #- 
-  kmeans = MiniBatchKMeans(n_clusters=n_clusters, n_init="auto", random_state=666142, verbose=1, max_no_improvement=250).fit(latent)
-  clusters = torch.Tensor(kmeans.transform(latent))
+  df, latent = read_LLM_embeddings(EMBEDPATH, n_clusters)
 
   #- Join with Doc Ids
   ids = pd.concat([pd.read_csv("{}ids/{}".format(EMBEDPATH, f)) for f in os.listdir("{}ids/".format(EMBEDPATH))])
   ids = ids.merge(df, on="sha224", how="left").sort_values("sha224").reset_index(drop=True)
+  df = ids
 
-  clusters = torch.cat([clusters[int(i)].unsqueeze(0) for i in ids.idx])
+  #- Apply UMAP
+  # #*** This will have to be calibrated and scaled to corpus.
+  transform = UMAP(n_neighbors=n_neighbors, min_dist=min_dist, n_components=2, metric="euclidean")
+  umapped = transform.fit_transform(latent)
+  df["umap_1"] = umapped[:,0]
+  df["umap_2"] = umapped[:,1]
 
   #- Store to File.
-  label = "kmeans"
-  if not os.path.exists("{}{}/".format(EMBEDPATH,label)): mkpath("{}{}/".format(EMBEDPATH,label))
-  torch.save(clusters, "{}{}/nclusters.{}.pt".format(EMBEDPATH, label, n_clusters))
+  if not os.path.exists("{}umap/".format(EMBEDPATH)): mkpath("{}umap/".format(EMBEDPATH))
+  df.to_csv("{}umap/nclusters.{}.nn.{}.min.{}.csv".format(EMBEDPATH, n_clusters, n_neighbors, min_dist), index=False)
 
