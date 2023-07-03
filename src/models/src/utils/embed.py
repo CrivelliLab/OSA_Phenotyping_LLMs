@@ -29,4 +29,4 @@ def embed_tokens_tensor(tensor, model, layer_id=-1, agg=["sum", "mean"][0]):
   elif "encoder_hidden_states" in embed: embed = embed["encoder_hidden_states"][layer_id]
   if agg == "sum": return embed.sum(1)
   if agg == "mean": return embed.mean(1)
-  return batch
+  return embed
