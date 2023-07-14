@@ -2,7 +2,7 @@
 Developing analytic tools for phenotyping Obstructive Sleep Apnea along clinical text.
 
 ![OSA_WORDCLOUD](data/sleepapnea.png)
-
+![OSA_CAD_UMAP](data/Gatortron_base.discharge.layer.0.nclusters.256.nn.256.min.0.001.var.osa.cad.png)
 ---
 
 ## Dataset
