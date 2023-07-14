@@ -48,7 +48,7 @@ if __name__ == "__main__":
   args = parse_args()
   if not os.path.exists("logs/"): mkpath("logs/")
   logging.basicConfig(format="NLP@LBNL|%(asctime)s|%(name)s|%(levelname)s|%(message)s",
-                      filename="logs/3_clustr_MIMICIV_reports.log",
+                      filename="logs/2_clustr_MIMICIV_reports.log",
                       level = logging.DEBUG)
   logger = logging.getLogger("__main__")
   set_seed(666142)

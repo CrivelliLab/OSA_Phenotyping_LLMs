@@ -95,6 +95,7 @@ tree -h -L 2 LLMs/
 └── [4.0K]  huggingface_cache # These contain files ior model tokenizers and weights
     ├── [4.0K]  models--dmis-lab--biobert-base-cased-v1.2
     ├── [4.0K]  models--dmis-lab--biobert-large-cased-v1.1
+    ├── [4.0K]  models--emilyalsentzer--Bio_ClinicalBERT
     ├── [4.0K]  models--EMBO--BioMegatron345mCased
     ├── [4.0K]  models--GanjinZero--biobart-v2-base
     ├── [4.0K]  models--GanjinZero--biobart-v2-large
@@ -120,6 +121,8 @@ The following are the papers for these models.
 * BioBART: Pretraining and Evaluation of A Biomedical Generative Language Model [[Paper]](https://aclanthology.org/2022.bionlp-1.9.pdf) [[GitHub]](https://github.com/GanjinZero/BioBART)
 
 * BioMegatron: Larger Biomedical Domain Language Model [[Paper]](https://arxiv.org/pdf/2010.06060.pdf) [[HuggingFace]](https://huggingface.co/nvidia/megatron-bert-uncased-345m)
+
+* ClinicalBERT: [[Paper]](https://arxiv.org/abs/1904.03323) [[HuggingFace]](https://huggingface.co/emilyalsentzer/Bio_ClinicalBERT)
 
 * ClinicalT5: A Generative Language Model for Clinical Text [[Paper]](https://aclanthology.org/2022.findings-emnlp.398.pdf) [[Repo]](https://physionet.org/content/clinical-t5/1.0.0/)
 > ClinicalT5 is still being debugged.
@@ -217,11 +220,13 @@ Each GPU node contains 4 NVidia A100s (40 GB of onboard mem). The follow table c
 | BioGPT_base | src.models.src.biogpt | read_BioGPT_base | 346,763,264 | 6 | 1024 | 0.3272
 | BioGPT_large | src.models.src.biogpt| read_BioGPT_large | 1,571,188,800 | 1 | 2048 | 0.5816
 | BioMegatron_base | src.models.src.biomegatron | read_BioMegatron_base | 333,640,704 | 10 | 512 | 0.2831
+| Bio_ClinicalBERT | src.models.src.clinicalbert | read_Bio_ClinicalBERT | 108,310,272 | 42 | 0.2626
 | Gatortron_base | src.models.src.gatortron | read_Gatortron_base | 355,267,584 | 33 | 512 | 0.2740
 | Gatortron_s | src.models.src.gatortron | read_Gatortron_s | 355,267,584 | 33 | 512 | 0.2707 
 | Gatortron_medium | src.models.src.gatortron | read_Gatortron_medium | 3,912,798,720 | 5 | 512 | 0.1275
 | RadBERT_2m | src.models.src.radbert | read_RadBert_2m | 109,514,298 | 36 | 512 | 0.2127
 | RadBERT_4m | src.models.src.radbert | read_RadBert_4m | 124,697,433 | 36 | 514 | 0.2539
+
 
 ## Analysis Workflow
 
