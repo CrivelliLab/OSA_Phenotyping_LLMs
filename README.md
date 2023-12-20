@@ -220,13 +220,12 @@ Each GPU node contains 4 NVidia A100s (40 GB of onboard mem). The follow table c
 | BioGPT_base | src.models.src.biogpt | read_BioGPT_base | 346,763,264 | 6 | 1024 | 0.3272
 | BioGPT_large | src.models.src.biogpt| read_BioGPT_large | 1,571,188,800 | 1 | 2048 | 0.5816
 | BioMegatron_base | src.models.src.biomegatron | read_BioMegatron_base | 333,640,704 | 10 | 512 | 0.2831
-| Bio_ClinicalBERT | src.models.src.clinicalbert | read_Bio_ClinicalBERT | 108,310,272 | 42 | 0.2626
+| Bio_ClinicalBERT | src.models.src.clinicalbert | read_Bio_ClinicalBERT | 108,310,272 | 42 | 512 | 0.2626
 | Gatortron_base | src.models.src.gatortron | read_Gatortron_base | 355,267,584 | 33 | 512 | 0.2740
 | Gatortron_s | src.models.src.gatortron | read_Gatortron_s | 355,267,584 | 33 | 512 | 0.2707 
 | Gatortron_medium | src.models.src.gatortron | read_Gatortron_medium | 3,912,798,720 | 5 | 512 | 0.1275
 | RadBERT_2m | src.models.src.radbert | read_RadBert_2m | 109,514,298 | 36 | 512 | 0.2127
 | RadBERT_4m | src.models.src.radbert | read_RadBert_4m | 124,697,433 | 36 | 514 | 0.2539
-
 
 ## Analysis Workflow
 

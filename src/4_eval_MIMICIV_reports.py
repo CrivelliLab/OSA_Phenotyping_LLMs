@@ -20,7 +20,8 @@ MIMIC4_REPORTS = "/global/cfs/cdirs/m1532/Projects_MVP/_datasets/MIMIC_IV/physio
 MIMIC4_ADMS = "/global/cfs/cdirs/m1532/Projects_MVP/_datasets/MIMIC_IV/physionet.org/files/mimiciv/2.2/hosp/admissions.csv"
 MIMIC4_PATS = "/global/cfs/cdirs/m1532/Projects_MVP/_datasets/MIMIC_IV/physionet.org/files/mimiciv/2.2/hosp/patients.csv"
 MIMIC4_DXS = "/global/cfs/cdirs/m1532/Projects_MVP/_datasets/MIMIC_IV/physionet.org/files/mimiciv/2.2/hosp/diagnoses_icd.csv"
-LLM_EMBEDS = "/global/cfs/cdirs/m1532/Projects_MVP/_models/embeds/LLMs/"
+# LLM_EMBEDS = "/global/cfs/cdirs/m1532/Projects_MVP/_models/embeds/LLMs/"
+LLM_EMBEDS = "/pscratch/sd/r/rzamora/OSA_Phenotyping_LLMs/output/embeds/"
 PHENOTYPES = "output/phenotype/"
 
 #-
@@ -158,7 +159,8 @@ if __name__ == "__main__":
   df["race"] = df.race.apply(map_phenos)
   df["minstoDeathlog10"] = np.log10(np.clip(df.till_death, a_min=0, a_max=(60*24*365.25))) // 1.0 # Minutes remaining at time of admission, binned along log10
   df["dxslog2"] = np.log2(df.icd_code) // 1.0 # Number of dxs per admission, binned by log 2
-
+  df["emergency"] = 1 - ((df.admission_type == "ELECTIVE") | (df.admission_type == "SURGICAL SAME DAY ADMISSION")).astype("int")
+  
   #- 
   EMBEDS_PATH = args.embed
   models = list(sorted(os.listdir(EMBEDS_PATH)))
@@ -235,6 +237,16 @@ if __name__ == "__main__":
     # r2_mean, r2_std = linreg(np.expand_dims(test.age.to_numpy(), -1), np.expand_dims(test.entropy.to_numpy(), -1))
     # results.append([llm, layer, len(totals), col, test.entropy.sum(), None, None, r2_mean, r2_std])
     results.append([llm, layer, len(totals), col, test.entropy.sum(), None, None, None, None])
+
+    #- Admission Type Test
+    col = "emergency"
+    elective = clusters[latent.emergency==1].sum(0).float() / totals
+    emergency = clusters[latent.emergency==0].sum(0).float() / totals
+    e = entropy(torch.stack([elective, emergency]), totals)
+    plot_umap(path.format(col), latent, col, pt_size, "RdBu_r", minv=0, maxv=1)
+    # auc_mean, auc_std = logreg(clusters.numpy(), latent.dead)
+    # results.append([llm, layer, len(totals), col, e, auc_mean, auc_std, None, None])
+    results.append([llm, layer, len(totals), col, e, None, None, None, None])
 
     #- Death Test 
     col = "dead"
